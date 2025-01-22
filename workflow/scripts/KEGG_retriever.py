@@ -116,7 +116,7 @@ def get_kegg_kosequences(filepath: str, url: str, korec: str = None, type_seq: s
                 else:
                     for x in range(1, len(indiv)):
                         genes2.append(indiv[0] + indiv[x])
-            for i in tqdm(range(len(genes2)), desc = f'Downloading genes for {url.split("/")[-1]}', unit = "sequence"):
+            for i in tqdm(range(len(genes2)), desc = f'Downloading genes for {url.split("/")[-1]}', unit = "sequence", disable=True if not verbose else False):
                 genes2[i] = re.sub("\\(.*\\)", "", genes2[i])
                 if type_seq == "AA":
                     url2 = f'https://rest.kegg.jp/get/{genes2[i]}/aaseq'
@@ -178,7 +178,7 @@ def get_kegg_refgene_sequences(filepath: str, url: str, korec: str = None, type_
             gene_ids = [a.text for a in soup.find_all("a")]
             # Use the KEGG API to get the sequence information for a given list of gene IDs
             fasta = ""
-            for gene_id in tqdm(gene_ids, desc = f'Downloading genes pag.{url_list.index(url2) + 1}/{len(url_list)} in RefGene', position = 0, leave = True, unit = "sequence"):
+            for gene_id in tqdm(gene_ids, desc = f'Downloading genes pag.{url_list.index(url2) + 1}/{len(url_list)} in RefGene', position = 0, leave = True, unit = "sequence", disable=True if not verbose else False):
                 if gene_id.startswith("RG"):
                     if type_seq == "AA":
                         url3 = f"https://www.genome.jp/entry/-f+-n+a+{gene_id}"

@@ -22,34 +22,14 @@ rule all:
 
 rule t_coffee:
 	input:
-		# ["resources/Data/FASTA/CDHIT/{threshold}/{cluster}.fasta".format(threshold=config["thresholds"][x], 
-		# cluster=big_list_clusters[x][y]) for x in range(len(config["thresholds"])) for y in range(len(big_list_clusters[x]))]
 		"resources/Data/FASTA/{db}/CDHIT/{threshold}/{cluster}.fasta"
 	output:
 		"resources/Alignments/{db}/MultipleSequencesAlign/T_Coffee_UPI/{threshold}/{cluster}.clustal_aln"
-		# expand("resources/Alignments/MultipleSequencesAlign/T_Coffee_UPI/{threshold}/{cluster}.clustal_aln", threshold=config["thresholds"], cluster=threshold2clusters[threshold])
 	threads: config["threads"]
 	log:
 		"logs/{db}_t_coffee_{threshold}_{cluster}.log"
-	# script:
-	# 	"scripts/db_construction/t_coffee_run.py"
 	shell:
 		"t_coffee {input} -output clustalw_aln -outfile {output} -type PROTEIN -n_core 4"
-
-
-# rule mockup:
-# 	input:
-# 		# expand("resources/Data/FASTA/CDHIT/{threshold}/{cluster}.fasta", threshold=config["thresholds"], 
-# 		# cluster=(threshold2clusters[threshold][clt] for threshold in config["thresholds"] for clt in range(len(threshold2clusters[threshold]))))
-# 		# ["resources/Data/FASTA/PE/CDHIT/{threshold}/{cluster}.fasta".format(threshold=config["thresholds"][x],
-# 		# cluster=big_list_clusters[x][y]) for x in range(len(config["thresholds"])) for y in range(len(big_list_clusters[x]))]
-# 		["resources/Alignments/{db}/MultipleSequencesAlign/T_Coffee_UPI/{threshold}/{cluster}.clustal_aln".format(db=db_name, threshold=config["thresholds"][x], 
-# 		cluster=config[config["thresholds"][x]][y]) for x in range(len(config["thresholds"])) for y in range(len(config[config["thresholds"][x]]))]
-# 	output:
-# 		"mockup.out"
-# 	run:
-# 		with open("mockup.out", "w") as f:
-# 			f.write("sucess!")
 
 
 rule hmmbuild:
@@ -64,35 +44,10 @@ rule hmmbuild:
 		"hmmbuild {output} {input}"
 
 
-# rule mockup:
-#  	input:
-#  		["resources/Data/HMMs/{db}/After_tcoffee_UPI/{threshold}/{cluster}.hmm".format(db=db_name, threshold=config["thresholds"][x], 
-# 		cluster=config[config["thresholds"][x]][y]) for x in range(len(config["thresholds"])) for y in range(len(config[config["thresholds"][x]]))]
-#  	output:
-#  		"mockup.out"
-#  	run:
-#  		with open("mockup.out", "w") as f:
-#  			f.write("sucess!")
-
-
-# files = {threshold: glob(f"resources/Data/FASTA/{db_name}/CDHIT/{threshold}/*.fasta") for threshold in config["thresholds"]}
-# print(list(files.keys()))
-# threshold2clusters = {k : [v.split("/")[-1].split("\\")[-1].split('.f')[0] for v in values] for k, values in files.items()}
-
-# from scripts.snakemake_util import cat_hmms_input
-
-# def cat_hmms_input(wildcards):
-# 	return expand("resources/Data/HMMs/{db}/After_tcoffee_UPI/{threshold}/{cluster}.hmm", db=db_name, threshold=wildcards, cluster=config[wildcards]) # threshold2clusters[wildcards])
-
-# def cat_hmms_input():
-
-# 	return list_files
-
 rule cat_hmms:
 	input:
 	    ["resources/Data/HMMs/{db}/After_tcoffee_UPI/{threshold}/{cluster}.hmm".format(db=db_name, threshold=config["thresholds"][x], 
 		cluster=config[config["thresholds"][x]][y]) for x in range(len(config["thresholds"])) for y in range(len(config[config["thresholds"][x]]))]
-		# lambda wildcards: cat_hmms_input(wildcards.threshold)
 	output:
 		"resources/Data/HMMs/{db}/After_tcoffee_UPI/{threshold}.hmm"
 	threads: config["threads"]
@@ -100,13 +55,3 @@ rule cat_hmms:
 		"logs/{db}_cat_hmms_{threshold}.log"
 	shell:
 		"cat {input} > {output}"
-
-
-# rule mockup:
-# 	input:
-# 		expand("resources/Data/HMMs/{db}/After_tcoffee_UPI/{threshold}.hmm", threshold=config["thresholds"], db=db_name)
-# 	output:
-# 		"mockup.out"
-# 	run:
-#  		with open("mockup.out", "w") as f:
-#  			f.write("sucess!")

@@ -40,7 +40,7 @@ def UPIMAPI_iter_per_sim(dataframe: pd.DataFrame, search: bool = False, expansio
     if expansion:
         target_enzymes = {}
         for perc in range(60, 91, 5):
-            for index, seq in seq_id.iterrows():
+            for _, seq in seq_id.iterrows():
                 if seq["pident"] >= perc:
                     ident = re.findall("\|.*\|", seq["qseqid"])
                     ident = re.sub("\|", "", ident[0])
@@ -52,7 +52,7 @@ def UPIMAPI_iter_per_sim(dataframe: pd.DataFrame, search: bool = False, expansio
     else:
         target_enzymes = []
         if cutoff:
-            for index, seq in seq_id.iterrows():
+            for _, seq in seq_id.iterrows():
                 if seq["pident"] >= cutoff:
                     if search:
                         ident = re.findall("\|.*\|", seq["qseqid"])
@@ -61,7 +61,7 @@ def UPIMAPI_iter_per_sim(dataframe: pd.DataFrame, search: bool = False, expansio
                         ident = seq["sseqid"]
                     target_enzymes.append(ident)
         else:
-            for index, seq in seq_id.iterrows():
+            for _, seq in seq_id.iterrows():
                 if search:
                     ident = re.findall("\|.*\|", seq["qseqid"])
                     ident = re.sub("\|", "", ident[0])
@@ -74,12 +74,3 @@ def UPIMAPI_iter_per_sim(dataframe: pd.DataFrame, search: bool = False, expansio
 def sigasiga(listinha, outpath):
     df = pd.DataFrame(listinha, columns=["IDs"])
     df.to_csv(outpath, index=False, sep = "\t")
-
-
-# handle = UPIMAPI_parser("/mnt/c/Users/jpsfr/OneDrive/Ambiente de Trabalho/M-PARTY/M-PARTY/.tests/ze_e_diogo_aligned/SRR5976595/UPIMAPI_results.tsv")
-# # print(handle)
-# dicionario_identidades = UPIMAPI_iter_per_sim(handle)
-# print(len(dicionario_identidades))
-# sigasiga(dicionario_identidades, "/mnt/c/Users/jpsfr/OneDrive/Ambiente de Trabalho/M-PARTY/M-PARTY/.tests/ze_e_diogo_aligned/SRR5976595/upimapi_all_IDS.tsv")
-# get_fasta_sequences2("/mnt/c/Users/jpsfr/OneDrive/Ambiente de Trabalho/M-PARTY/M-PARTY/.tests/ze_e_diogo_aligned/SRR5976595/upimapi_all_IDS.tsv", 
-#                     "/mnt/c/Users/jpsfr/OneDrive/Ambiente de Trabalho/M-PARTY/M-PARTY/.tests/ze_e_diogo_aligned/SRR5976595/matched_seqs.fasta")

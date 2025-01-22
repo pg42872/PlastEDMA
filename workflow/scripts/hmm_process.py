@@ -3,19 +3,29 @@ import sys
 import numpy as np
 
 
-def read_hmmsearch_table(path: str, format: str = "tblout", save_as_csv: bool = False) -> pd.DataFrame:
-    """Function receives the path for a paseable tabular (space-delimited) file from hmmsearch execution, and proceeds to its conversion
-    to a pandas Dataframe object.
+def column_generator(column_name: str, list_columns: list) -> list:
+    """Maps the main header (column name) with the second headers (list_columns) to be added to a Dataframe as a MultiIndex
 
     Args:
-        path (str): Full path for the hmmsearch resulting file.
-        format (str, optional): Refers to the out format from hmmsearch execution. Defaults to "tblout".
-        save_as_csv (bool, optional): User option to save file in a CSV format, for more readable output. Defaults to False.
+        column_name (str): Name for the main name for the set of underlying columns
+        list_columns (list): Name for the underlying columns
 
     Returns:
-        pd.DataFrame: Returns a pandas Dataframe object with the headers and data from the original file.
+        list: Returns a list of tuples in the form of (first header, second header)
     """
-    index = {"tblout": 18}[format]
+    mapa = list(map(lambda field: (column_name, field), list_columns))
+    return mapa
+
+
+def parse_hmmsearch_lines(path: str) -> tuple:
+    """Given a HMMSearch output file, parsed through its lines to find the desired data
+
+    Args:
+        path (str): path to the file
+
+    Returns:
+        tuple: returns the 3 types of data present in these files: first header, second header and the remaining results
+    """
     dados, first_header, second_header = [], [], []
     with open(path, "r") as f:
         for line in f.readlines():
@@ -32,7 +42,18 @@ def read_hmmsearch_table(path: str, format: str = "tblout", save_as_csv: bool = 
                     if char != "":
                         linha.append(char)
                 dados.append(linha)
-    dados.pop()
+    return dados, first_header, second_header
+
+
+def process_first_header(first_header: list) -> list:
+    """Processes the distinct lines from the first header
+
+    Args:
+        first_header (list): raw first header list
+
+    Returns:
+        list: processed first header list
+    """
     lst = []
     for char in first_header[0].strip().split(" "):
         if char != "#" and char != "":
@@ -43,6 +64,25 @@ def read_hmmsearch_table(path: str, format: str = "tblout", save_as_csv: bool = 
             first_header.append(char.strip())
     first_header.insert(0, "identifier")
     first_header.append("descriptions")
+    return first_header
+
+
+def read_hmmsearch_table(path: str, format: str = "tblout", save_as_csv: bool = False) -> pd.DataFrame:
+    """Function receives the path for a paseable tabular (space-delimited) file from hmmsearch execution, and proceeds to its conversion
+    to a pandas Dataframe object.
+
+    Args:
+        path (str): Full path for the hmmsearch resulting file.
+        format (str, optional): Refers to the out format from hmmsearch execution. Defaults to "tblout".
+        save_as_csv (bool, optional): User option to save file in a CSV format, for more readable output. Defaults to False.
+
+    Returns:
+        pd.DataFrame: Returns a pandas Dataframe object with the headers and data from the original file.
+    """
+    index = {"tblout": 18}[format]
+    dados, first_header, second_header = parse_hmmsearch_lines(path=path)
+    dados.pop()
+    first_header = process_first_header(first_header)
     for entry in range(len(dados)):
         dados[entry] = dados[entry][:index] + [" ".join(dados[entry][index:])]
     second_header = [["target_name", "target_accession_number", "query_name", "query_accession_number"], 
@@ -54,29 +94,13 @@ def read_hmmsearch_table(path: str, format: str = "tblout", save_as_csv: bool = 
     for i in range(len(first_header)):
         mapa = column_generator(first_header[i], second_header[i])
         colunas += mapa
-    # print(colunas)
     if dados == []:
         dados = [[1] * (index + 1)] 
-    # print(dados)
     df = pd.DataFrame(dados)
     df.columns = pd.MultiIndex.from_tuples(colunas)
     if save_as_csv:
         df.to_csv(path.split(".tsv")[:-1] + ".csv")
     return df
-
-
-def column_generator(column_name: str, list_columns: list) -> list:
-    """Maps the main header (column name) with the second headers (list_columns) to be added to a Dataframe as a MultiIndex
-
-    Args:
-        column_name (str): Name for the main name for the set of underlying columns
-        list_columns (list): Name for the underlying columns
-
-    Returns:
-        list: Returns a list of tuples in the form of (first header, second header)
-    """
-    mapa = list(map(lambda field: (column_name, field), list_columns))
-    return mapa
 
 
 def get_number_hits(dataframe: pd.DataFrame) -> int:
@@ -137,7 +161,7 @@ def get_e_values(dataframe: pd.DataFrame, to_list:bool = False, only_relevant: b
             return pd.to_numeric(dataframe["full sequence"]["E-value"])
 
 
-def get_match_IDS(dataframe: pd.DataFrame, to_list:bool = False, only_relevant: bool = False) -> pd.Series:
+def get_match_ids(dataframe: pd.DataFrame, to_list:bool = False, only_relevant: bool = False) -> pd.Series:
     """Given a Dataframe with data from hmmsearch execution (post processed into a pd.Dataframe), 
     returns all Uniprot IDs from the targuet sequences 
     that gave a hit. Can also be given a dataframe after beeing cut down to only the relevant data.
@@ -181,7 +205,7 @@ def get_models_names(dataframe: pd.DataFrame, to_list: bool = False, only_releva
             for i in range(len(lst)):
                 try:
                     lst[i] = lst[i].split(".")[0]
-                except:
+                except Exception:
                     continue
             if unique:
                 list_set = set(lst)
@@ -190,10 +214,25 @@ def get_models_names(dataframe: pd.DataFrame, to_list: bool = False, only_releva
         else:
             return dataframe["identifier"]["query_name"].tolist()
     else:
-        if only_relevant:
-            return dataframe["query_name"]
-        else:
-            return dataframe["identifier"]["query_name"]
+        return dataframe["query_name"] if only_relevant else dataframe["identifier"]["query_name"]
+        
+
+def create_summary_dict(dataframe: pd.DataFrame) -> dict:
+    """Creates a summary dictionary with the fields to be used in the output
+
+    Args:
+        dataframe (pd.DataFrame): DataFrame with the HMMSearch reasults
+
+    Returns:
+        dict: dictionary with model names, IDs matched and respective bit scores and e values
+    """
+    summary_dic = { 
+        "models": [model for model in get_models_names(dataframe, to_list = True, only_relevant = True)], 
+        "querys": get_match_ids(dataframe, to_list = True, only_relevant = True),
+        "bit_scores": get_bit_scores(dataframe, to_list = True, only_relevant = True),
+        "e_values": get_e_values(dataframe, to_list = True, only_relevant = True)
+        }
+    return summary_dic
 
 
 def relevant_info_df(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -207,7 +246,7 @@ def relevant_info_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     scores = get_bit_scores(dataframe)
     evalues = get_e_values(dataframe)
-    matches = get_match_IDS(dataframe)
+    matches = get_match_ids(dataframe)
     models = get_models_names(dataframe)
     return pd.concat([scores, evalues, matches, models], axis = 1)
 

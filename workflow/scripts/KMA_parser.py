@@ -1,10 +1,8 @@
 from command_run import run_command
-import re
-import os
 import pandas as pd
 
 
-def run_KMA(input_DB: str, output_DB: str, meta_input: str, meta_out: str, threads: int, paired_end: bool = False, second_input: str = None) -> str:
+def run_KMA(input_db: str, output_db: str, meta_input: str, meta_out: str, threads: int, paired_end: bool = False, second_input: str = None) -> str:
     """Runs KMA with in the command line and returns the output file
 
     Args:
@@ -22,12 +20,12 @@ def run_KMA(input_DB: str, output_DB: str, meta_input: str, meta_out: str, threa
     Returns:
         str: Path of the output file
     """
-    run_command(f'kma`index`-i`{input_DB}`-o`{output_DB}', sep = "`")
-    run_command(f'kma`-i`{meta_input}`-o`{meta_out}`-t_db`{output_DB}`-t`{threads}`-1t1`-mem_mode`-ef', sep = "`")
+    run_command(f'kma`index`-i`{input_db}`-o`{output_db}', sep = "`")
+    run_command(f'kma`-i`{meta_input}`-o`{meta_out}`-t_db`{output_db}`-t`{threads}`-1t1`-mem_mode`-ef', sep = "`")
     if paired_end and second_input == None:
         raise ValueError("When paired end is flaged, a second input file is mandatory")
     elif paired_end and second_input != None:
-        run_command(f'kma`-i`{meta_input}`{second_input}`{meta_out}`-t_db`{output_DB}`-t`{threads}`-1t1`-mem_mode`-ef', sep = "`")
+        run_command(f'kma`-i`{meta_input}`{second_input}`{meta_out}`-t_db`{output_db}`-t`{threads}`-1t1`-mem_mode`-ef', sep = "`")
     return meta_out
 
 def kma_parser(input_file: str) -> pd.DataFrame:
@@ -58,7 +56,3 @@ def get_hit_sequences(dataframe: pd.DataFrame, to_list: bool = False) -> list:
         return dataframe["#Template"].tolist()
     else:
         return dataframe["#Template"]
-
-
-# df = kma_parser("/mnt/c/Users/Ze/Desktop/BOLSA/resultados_KMA/SRR3933361_nuc_fastq_kma.res")
-# print(df)

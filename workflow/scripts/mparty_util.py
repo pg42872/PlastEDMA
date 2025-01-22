@@ -37,7 +37,7 @@ def threshold2clusters(file_dic: dict) -> dict:
 	for thresh, path in file_dic.items():
 		try:
 			threshold2clusters[thresh] = get_clusters(path[0])
-		except:
+		except Exception:
 			print(f'No clusters were found for {thresh} threshold.')
 			continue
 	for k, v in threshold2clusters.items():
@@ -79,17 +79,6 @@ def match_threshold_W_cluster(combinador, desired_combs) -> tuple:
     return match_threshold_W_cluster
 
 
-# desired = util(config["thresholds"], big_list_clusters)
-# inicializar função de combinação
-# filtered_product = match_threshold_W_cluster(product, desired)
-
-
-# def cat_hmms_input(wildcard, config_file):
-# 	list_clusters = get_all_clusters(config_file)[0]
-# 	return ["workflow/Data/HMMs/After_tcoffee_UPI/{threshold}/{cluster}.hmm".format(threshold=config_file["thresholds"][x], 
-# 			cluster=list_clusters[x][y]) for x in range(len(config_file["thresholds"])) for y in range(len(list_clusters[x]))]
-
-
 def cat_hmms_input(wildcards):
 	return expand("resources/Data/HMMs/After_tcoffee_UPI/{threshold}/{cluster}.hmm", threshold=wildcards, cluster=threshold2clusters[wildcards])
 
@@ -98,7 +87,7 @@ def get_target_db(config):
 	return config["hmm_database_name"]
 
 
-def get_UPI_queryDB(config):
+def get_upi_querydb(config):
 	return config["database"]
 
 
@@ -114,7 +103,7 @@ def get_output_dir(path: str, config: str, hmm: bool = False) -> str:
 	else:
 		try:
 			ind = c.index("FASTA")
-		except:
+		except Exception:
 			ind = c.index("Tables")
 	c.insert(ind + 1, config["hmm_database_name"])
 	return "/".join(c)
@@ -185,7 +174,7 @@ def download_uniprot(database_folder: str):
 	run_command(f'zcat {database_folder}/{url[0].split("/")[-1]} {database_folder}/{url[1].split("/")[-1]} > {database_folder}/uniprot.fasta')
 
 
-def build_UPI_query_DB(database_folder: str, config: str = None, verbose: bool = False) -> str:
+def build_upi_query_db(database_folder: str, config: str = None, verbose: bool = False) -> str:
 	"""Function that will download the database from uniprot to a specified folder.
 
 	Args:
@@ -200,7 +189,7 @@ def build_UPI_query_DB(database_folder: str, config: str = None, verbose: bool =
 		str: Path for the new database.
 	"""
 	# database = "uniprot"
-	database = get_UPI_queryDB(config)
+	database = get_upi_querydb(config)
 	if database.lower() == "uniprot":
 		if not os.path.exists(database_folder + "/uniprot.fasta"):
 			print(f'Download of {database} database started...\n')
@@ -308,7 +297,7 @@ def check_id(filepath: str, outpath: str, id_list: list):
 		outpath (str): path to the file to be writen, which will be added "aligned.fasta".
 		id_list (list): list of IDs to find in the "filepath".
 	"""
-	num_lines = sum(1 for line in open(filepath, "r"))
+	num_lines = sum(1 for _ in open(filepath, "r"))
 	sequence = ""
 	in_seq = False
 	with open(outpath + "aligned.fasta", "w") as wf:
@@ -421,6 +410,3 @@ def retry(tries: int, url: str):
 			i += 1
 			time.sleep(2)
 	return response		
-
-# compress_fasta("/mnt/c/Users/Ze/Desktop/M-PARTY/.tests/SRR3962293.faa")
-# return_fasta_content("/mnt/c/Users/Ze/Desktop/M-PARTY/resources/Data/FASTA/ERR476942.faa")

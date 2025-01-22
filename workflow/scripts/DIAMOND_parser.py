@@ -79,12 +79,3 @@ def DIAMOND_iter_per_sim(dataframe: pd.DataFrame, expasion: bool = False, cut_of
             for index, seq in seq_id.iterrows():
                 target_enzymes.append(seq["qseqid"])
         return target_enzymes
-
-
-# build_diamond_DB("/mnt/c/Users/Ze/Desktop/M-PARTY/.tests/KEGG_test.fasta", "/mnt/c/Users/Ze/Desktop/M-PARTY/resources/Data/FASTA/DataBases/", verbose = True)
-
-# # handle = run_DIAMOND("/mnt/c/Users/Ze/Desktop/M-PARTY/resources/Data/FASTA/SRR3962293.faa", "/mnt/c/Users/Ze/Desktop/M-PARTY/resources/Data/Tables/SRR3962293_DIA.tsv", "/mnt/c/Users/Ze/Desktop/M-PARTY/resources/Data/FASTA/DataBases/KEGG_test.dmnd", 4)
-# file = DIAMOND_parser("/mnt/c/Users/Ze/Desktop/M-PARTY/resources/Data/Tables/SRR3962293_DIA.tsv")
-# dictionary = DIAMOND_iter_per_sim(file)
-# # compress_fasta("/mnt/c/Users/Ze/Desktop/M-PARTY/.tests/SRR3962293.faa")
-# return_fasta_content("/mnt/c/Users/Ze/Desktop/M-PARTY/.tests/SRR3962293.faa", "/mnt/c/Users/Ze/Desktop/M-PARTY/.tests/", dictionary)
